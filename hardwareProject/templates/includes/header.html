@@ -1,0 +1,27 @@
+<!-- templates/includes/header.html -->
+<header class="bg-light py-3 border-bottom fixed-top">
+    <div class="container d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            {% if config and config.logo %}
+            <a href="../Inicio/">
+                <img src="{{ config.logo.url }}" alt="Logo" height="50" class="me-2">
+            </a>
+            {% endif %}
+            <a href="../Inicio/" class="text-decoration-none text-dark">
+                <h1 class="h4 mb-0">
+                    {% if config and config.name %}
+                        {{ config.name }}
+                    {% else %}
+                        Proyectos Hardware Libre
+                    {% endif %}
+                </h1>
+            </a>
+        </div>
+        
+        <nav class="d-flex gap-3">
+            <a href="../Inicio/" class="text-decoration-none text-dark">Inicio</a>
+            <a href="../Proyectos/" class="text-decoration-none text-dark">Proyectos</a>
+            <a href="#" class="text-decoration-none text-dark">Nosotros</a>
+        </nav>
+    </div>
+</header>

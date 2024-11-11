@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio - 
+    {% if config and config.name %}
+        {{ config.name }}
+    {% else %}
+        Proyectos Hardware Libre
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-5 pt-5">
+        <h1>Bienvenido a 
+            {% if config and config.name %}
+                {{ config.name }}
+            {% else %}
+                Proyectos Hardware Libre
+            {% endif %}
+        </h1>
+        <p>Este es el contenido de la página de inicio.</p>
+    </div>
+    
+{% endblock %}

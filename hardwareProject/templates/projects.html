@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Proyectos - 
+    {% if config and config.name %}
+        {{ config.name }}
+    {% else %}
+        Proyectos Hardware Libre
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5">
+    <div class="row">
+        {% for project in projects %}
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card h-100">
+                    {% if project.main_image %}
+                        <!-- Mostrar la imagen del proyecto si existe -->
+                        <img src="{{ project.main_image.image.url }}" style="aspect-ratio: 16/9;" class="card-img-top" alt="{{ project.title }}">
+                    {% else %}
+                        <!-- Mostrar imagen de marcador de posición -->
+                        <img src="https://via.placeholder.com/200" class="card-img-top" alt="Imagen del proyecto">
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">{{ project.title }}</h5>
+                        <p class="card-text">
+                            {% if project.description|length > 100 %}
+                                {{ project.description|slice:":100" }}...
+                            {% else %}
+                                {{ project.description }}
+                            {% endif %}
+                        </p>
+                        <a href="#" class="btn btn-primary">Ver más</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p>No hay proyectos activos disponibles.</p>
+        {% endfor %}
+    </div>
+</div>
+    
+{% endblock %}

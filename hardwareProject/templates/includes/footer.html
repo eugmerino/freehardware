@@ -1,0 +1,13 @@
+<footer class="bg-light py-2 border-top fixed-bottom">
+    <div class="container d-flex justify-content-center">
+        <p class="mb-0 text-muted">
+            © By Merino 
+            {% if config and config.name %}
+                {{ config.name }}
+            {% else %}
+                Proyectos Hardware Libre
+            {% endif %} 
+            2024
+        </p>
+    </div>
+</footer>
