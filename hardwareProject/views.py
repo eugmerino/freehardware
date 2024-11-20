@@ -2,9 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from systemConfig.models import SystemConfig
 from hardwareProject.models import Project, ProjectImage
 from django.http import JsonResponse
-from .models import Project, ProjectImage, Component
-from .forms import RegisterProject, ProjectImageFormSet, ComponentForm
+from .models import Project, ProjectImage, ProjectComponent, Component
+from .forms import RegisterProjectForm, ProjectImageFormSet, ComponentForm
 from django.contrib.auth.decorators import login_required
+from django.forms import modelformset_factory
 
 
 
@@ -46,9 +47,10 @@ def project_detail(request, project_id):
 
 def register(request):
     component_form = ComponentForm()
+    components = Component.objects.all()  # Cargar componentes existentes para el select
 
     if request.method == 'POST':
-        # Verificar si es una solicitud AJAX para agregar un componente
+        # Verificar si es una solicitud AJAX para agregar un nuevo componente
         if request.headers.get('x-requested-with') == 'XMLHttpRequest' and 'name' in request.POST:
             component_form = ComponentForm(request.POST, request.FILES)
             if component_form.is_valid():
@@ -65,16 +67,37 @@ def register(request):
                 })
 
         # Procesamiento del formulario de proyecto
-        form = RegisterProject(request.POST, request.FILES)
+        form = RegisterProjectForm(request.POST, request.FILES)
         formset = ProjectImageFormSet(request.POST, request.FILES, instance=form.instance)
-        
+        project_components = request.POST.getlist('components_data')
+
         if form.is_valid() and formset.is_valid():
-            project = form.save()  # Guarda el proyecto
+            project = form.save()  # Guardar el proyecto
             formset.instance = project
-            formset.save()  # Guarda las imágenes relacionadas con el proyecto
+            formset.save()  # Guardar imágenes relacionadas al proyecto
+
+            # Guardar relaciones de componentes con el proyecto
+            for component_data in project_components:
+                data = eval(component_data)  # Convertir la string JSON-like en un diccionario
+                ProjectComponent.objects.create(
+                    project=project,
+                    component_id=data['component_id'],
+                    amount=data['amount'],
+                    description=data['description']
+                )
+
             return redirect('projects_view')
     else:
-        form = RegisterProject()
+        form = RegisterProjectForm()
         formset = ProjectImageFormSet()
 
-    return render(request, 'register.html', {'config': config, 'form': form, 'formset': formset, 'component_form': component_form})
+    return render(
+        request,
+        'register.html',
+        {
+            'form': form,
+            'formset': formset,
+            'component_form': component_form,
+            'components': components,
+        }
+    )

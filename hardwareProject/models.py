@@ -25,12 +25,6 @@ class Project(models.Model):
     state = models.IntegerField("Estado", choices=STATE_CHOICES, default=2)
     imgDiagram = models.ImageField("Diagrama", upload_to="diagrams/")
     code = models.TextField("Código fuente")
-    components = models.ManyToManyField(
-        'Component',
-        related_name='projects',
-        blank=True,
-        verbose_name='Componente'
-    )
 
     def save(self, *args, **kwargs):
         # Definir tamaño de redimensionamiento
@@ -104,6 +98,34 @@ class Component(models.Model):
     class Meta:
          verbose_name="Componente"
          verbose_name_plural="Componentes"
+
+    
+class ProjectComponent(models.Model):
+    """
+    Representa la relación entre un proyecto y sus componentes
+    """
+    amount = models.PositiveIntegerField("Cantidad", default=1)
+    description = models.TextField("Descripción", max_length=400, blank=True, null=True)
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        verbose_name="Proyecto",
+        related_name="project_components"
+    )
+    component = models.ForeignKey(
+        Component,
+        on_delete=models.CASCADE,
+        verbose_name="Componente",
+        related_name="project_components"
+    )
+
+    def __str__(self):
+        return f"{self.project.title} - {self.component.name}"
+
+    class Meta:
+        verbose_name = "Proyecto-Componente"
+        verbose_name_plural = "Proyectos-Componentes"
+        unique_together = ('project', 'component')
     
 
 class ProjectImage(models.Model):
@@ -111,7 +133,7 @@ class ProjectImage(models.Model):
     representa las imagenes del proyecto terminado
     """
     image = models.ImageField("imagen", upload_to="projects/")
-    project=models.ForeignKey(Project,
+    project= models.ForeignKey(Project,
         on_delete = models.CASCADE,
         null=False,
         blank=False,

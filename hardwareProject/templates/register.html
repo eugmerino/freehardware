@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 
-{% block title %}Registro -
+{% block title %}Registro - 
 {% if config and config.name %}
-{{ config.name }}
+    {{ config.name }}
 {% else %}
-Proyectos Hardware Libre
+    Proyectos Hardware Libre
 {% endif %}
 {% endblock %}
 
@@ -46,13 +46,21 @@ Proyectos Hardware Libre
             <div>
                 <label for="form-label">Componentes:</label>
             </div>
-            <label for="form-label">Seleccione con Ctrl + click los componentes de su proyecto.</label>
-            {{ form.components }}
-            <div class="mt-3">
-                <label for="form-label">Si su componente no existe puede agregar uno nuevo:</label>
+            <div id="component-container">
+                <div id="component-1">
+                    <label>Seleccionar componente:</label>
+                    <select name="component_id" class="form-control">
+                        {% for component in components %}
+                            <option value="{{ component.id }}">{{ component.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="number" name="amount" placeholder="Cantidad" class="form-control mt-2">
+                    <textarea name="description" placeholder="Descripción" class="form-control mt-2"></textarea>
+                    <button type="button" class="btn btn-danger mt-2" onclick="removeComponent(1)">Eliminar</button>
+                </div>
             </div>
-            <button type="button" class="btn btn-secondary mt-2 d-block" data-bs-toggle="modal"
-                data-bs-target="#addComponentModal">
+            <button type="button" id="add-component-btn" class="btn btn-secondary mt-2">Agregar Componente</button>
+            <button type="button" class="btn btn-secondary mt-2 d-block" data-bs-toggle="modal" data-bs-target="#addComponentModal">
                 Agregar Componente
             </button>
         </div>
@@ -67,10 +75,10 @@ Proyectos Hardware Libre
         {{ formset.management_form }}
         <div id="formset-container">
             {% for form in formset %}
-            <div class="mb-3 form-inline">
-                {{ form.image.label_tag }}
-                {{ form.image }}
-            </div>
+                <div class="mb-3 form-inline">
+                    {{ form.image.label_tag }}
+                    {{ form.image }}
+                </div>
             {% endfor %}
         </div>
         <button type="button" id="add-image-btn" class="btn btn-secondary mt-3">Agregar otra imagen</button>
@@ -85,8 +93,7 @@ Proyectos Hardware Libre
 </form>
 
 <!-- Modal para agregar componente -->
-<div class="modal fade" id="addComponentModal" tabindex="-1" aria-labelledby="addComponentModalLabel"
-    aria-hidden="true">
+<div class="modal fade" id="addComponentModal" tabindex="-1" aria-labelledby="addComponentModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -136,67 +143,78 @@ Proyectos Hardware Libre
     // Inicializar mostrando el primer paso
     showStep(currentStep);
 
-    // AJAX para agregar el componente
-    document.getElementById('addComponentForm').onsubmit = function (e) {
-        e.preventDefault();
+    // Manejo de agregar componente dinámicamente
+    let componentCount = 1;
 
-        let formData = new FormData(this);
-
-        fetch("{% url 'register' %}", {  // Asegúrate de que esta URL apunte a tu vista
-            method: "POST",
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': '{{ csrf_token }}',
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Añadir el nuevo componente al select de componentes
-                    let componentsSelect = document.getElementById('id_components');
-                    let option = new Option(data.component_name, data.component_id);
-                    componentsSelect.add(option, undefined);
-                    componentsSelect.value = data.component_id;  // Seleccionar el recién añadido
-
-                    // Cerrar el modal usando el método de Bootstrap
-                    let modal = bootstrap.Modal.getInstance(document.getElementById('addComponentModal'));
-                    modal.hide();
-
-                    // Resetear el formulario de la modal
-                    this.reset();
-                } else {
-                    alert("Error: " + JSON.stringify(data.errors));
-                }
-            })
-            .catch(error => console.error('Error:', error));
-    };
-
-    document.addEventListener("DOMContentLoaded", function () {
-        const addImageBtn = document.getElementById("add-image-btn");
-        const formsetContainer = document.getElementById("formset-container");
-        const totalFormsInput = document.querySelector("[name='projectimage_set-TOTAL_FORMS']");
-
-        addImageBtn.addEventListener("click", function () {
-            // Obtén el número actual de formularios en el formset
-            const currentFormCount = parseInt(totalFormsInput.value);
-
-            // Crea un nuevo formulario
-            const newFormHtml = `
-                <div class="mb-3 form-inline">
-                    <label for="id_projectimage_set-${currentFormCount}-image">Imagen:</label>
-                    <input type="file" name="projectimage_set-${currentFormCount}-image" id="id_projectimage_set-${currentFormCount}-image" class="form-control" accept="image/*">
-                </div>
-            `;
-
-            // Agrega el nuevo formulario al contenedor
-            formsetContainer.insertAdjacentHTML("beforeend", newFormHtml);
-
-            // Incrementa el contador de formularios totales
-            totalFormsInput.value = currentFormCount + 1;
-        });
+    document.getElementById('add-component-btn').addEventListener('click', () => {
+        componentCount++;
+        const newComponentHtml = `
+            <div id="component-${componentCount}">
+                <label>Seleccionar componente:</label>
+                <select name="component_id" class="form-control">
+                    {% for component in components %}
+                        <option value="{{ component.id }}">{{ component.name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="number" name="amount" placeholder="Cantidad" class="form-control mt-2">
+                <textarea name="description" placeholder="Descripción" class="form-control mt-2"></textarea>
+                <button type="button" class="btn btn-danger mt-2" onclick="removeComponent(${componentCount})">Eliminar</button>
+            </div>
+        `;
+        document.getElementById('component-container').insertAdjacentHTML('beforeend', newComponentHtml);
     });
 
+    function removeComponent(id) {
+        document.getElementById(`component-${id}`).remove();
+    }
 
+    // AJAX para agregar un nuevo componente
+document.getElementById('addComponentForm').onsubmit = function (e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+
+    fetch("{% url 'register' %}", {
+        method: "POST",
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': '{{ csrf_token }}',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Seleccionar todos los select con el nombre "component_id"
+            const selects = document.querySelectorAll('select[name="component_id"]');
+            const option = new Option(data.component_name, data.component_id);
+
+            // Agregar la nueva opción a cada select
+            selects.forEach(select => {
+                select.add(option.cloneNode(true));  // Usar cloneNode para agregar la opción a cada select
+            });
+
+            alert('Componente agregado con éxito');
+            this.reset();
+        } else {
+            alert('Error al agregar el componente');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+};
+
+
+    // Manejo de imágenes dinámicas en el formulario
+    document.getElementById("add-image-btn").addEventListener("click", function () {
+        const currentFormCount = parseInt(document.querySelector("[name='projectimage_set-TOTAL_FORMS']").value);
+        const newFormHtml = `
+            <div class="mb-3 form-inline">
+                <label for="id_projectimage_set-${currentFormCount}-image">Imagen:</label>
+                <input type="file" name="projectimage_set-${currentFormCount}-image" class="form-control">
+            </div>
+        `;
+        document.getElementById("formset-container").insertAdjacentHTML('beforeend', newFormHtml);
+        document.querySelector("[name='projectimage_set-TOTAL_FORMS']").value = currentFormCount + 1;
+    });
 </script>
+
 {% endblock %}
