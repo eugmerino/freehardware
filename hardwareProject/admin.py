@@ -2,6 +2,8 @@ from django.contrib import admin
 from .models import Project, Component, ProjectImage
 from django.forms import BaseInlineFormSet
 from django import forms
+from django.urls import reverse
+from django.utils.html import format_html
 
 
 class ProjectImageInlineFormSet(BaseInlineFormSet):
@@ -37,9 +39,18 @@ class ComponentInline(admin.TabularInline):
 
 class ProjectAdmin(admin.ModelAdmin):
     inlines = [ComponentInline, ImageInline, ]  # Añadimos ComponentInline aquí
-    list_display = ('title', 'state', 'description', 'imgDiagram')
+    list_display = ('title', 'state', 'description', 'view_link')
+    list_editable = ('state',)
     search_fields = ('title', 'description')
+    list_per_page = 10
+    ordering = ['state']
     exclude = ('components',)
+
+    @admin.display(description='Detalles del Proyecto')  # Nombre de la columna
+    def view_link(self, obj):
+        # Construimos la URL hacia la vista `project_detail`
+        url = reverse('project_detail', args=[obj.id])  # Utilizamos el nombre de la ruta configurada
+        return format_html('<a href="{}" target="_blank">Ver Detalles</a>', url)
 
 # Registro de modelos en el admin
 admin.site.register(Project, ProjectAdmin)

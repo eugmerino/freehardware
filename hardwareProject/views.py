@@ -4,6 +4,7 @@ from hardwareProject.models import Project, ProjectImage
 from django.http import JsonResponse
 from .models import Project, ProjectImage, Component
 from .forms import RegisterProject, ProjectImageFormSet, ComponentForm
+from django.contrib.auth.decorators import login_required
 
 
 
@@ -22,13 +23,26 @@ def projects_view(request):
 
     return render(request, 'projects.html', {'config': config, 'projects': projects})
 
+
 def project_detail(request, project_id):
-    # Recuperar el proyecto por su id o devolver 404 si no existe
-    project = get_object_or_404(Project, id=project_id)
+    # Filtramos el proyecto según el estado y si el usuario está autenticado
+    if request.user.is_authenticated:
+        # Usuarios autenticados pueden ver cualquier proyecto
+        project = get_object_or_404(Project, id=project_id)
+    else:
+        # Usuarios no autenticados solo pueden ver proyectos activos
+        project = get_object_or_404(Project, id=project_id, state=1)
+
+    # Obtenemos los componentes y las imágenes relacionados
     components = project.components.all()
     project_images = ProjectImage.objects.filter(project=project)
 
-    return render(request, 'project_detail.html', {'config': config, 'project': project, 'components': components, 'project_images': project_images})
+    return render(request, 'project_detail.html', {
+        'config': config,
+        'project': project,
+        'components': components,
+        'project_images': project_images
+    })
 
 def register(request):
     component_form = ComponentForm()
