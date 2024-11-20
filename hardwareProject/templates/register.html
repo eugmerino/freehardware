@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block title %}Registro -
+{% if config and config.name %}
+{{ config.name }}
+{% else %}
+Proyectos Hardware Libre
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<h1>Agregar Proyecto</h1>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Paso 1: Título y Descripción -->
+    <div class="form-step" id="step-1">
+        <h3>Paso 1:</h3>
+        <div class="mb-3">
+            {{ form.title.label_tag }}
+            {{ form.title }}
+        </div>
+        <div class="mb-3">
+            {{ form.description.label_tag }}
+            {{ form.description }}
+        </div>
+    </div>
+
+    <!-- Paso 2: Código y Diagrama -->
+    <div class="form-step" id="step-2" style="display: none;">
+        <h3>Paso 2:</h3>
+        <div class="mb-3">
+            {{ form.code.label_tag }}
+            {{ form.code }}
+        </div>
+        <div class="mb-3">
+            {{ form.imgDiagram.label_tag }}
+            {{ form.imgDiagram }}
+        </div>
+    </div>
+
+    <!-- Paso 3: Componentes -->
+    <div class="form-step" id="step-3" style="display: none;">
+        <h3>Paso 3:</h3>
+        <div class="mb-5">
+            <div>
+                <label for="form-label">Componentes:</label>
+            </div>
+            <label for="form-label">Seleccione con Ctrl + click los componentes de su proyecto.</label>
+            {{ form.components }}
+            <div class="mt-3">
+                <label for="form-label">Si su componente no existe puede agregar uno nuevo:</label>
+            </div>
+            <button type="button" class="btn btn-secondary mt-2 d-block" data-bs-toggle="modal"
+                data-bs-target="#addComponentModal">
+                Agregar Componente
+            </button>
+        </div>
+    </div>
+
+    <!-- Paso 4: Imágenes -->
+    <div class="form-step" id="step-4" style="display: none;">
+        <h3>Paso 4:</h3>
+        <div class="mb-3">
+            <label for="form-label">Imágenes del proyecto:</label>
+        </div>
+        {{ formset.management_form }}
+        <div id="formset-container">
+            {% for form in formset %}
+            <div class="mb-3 form-inline">
+                {{ form.image.label_tag }}
+                {{ form.image }}
+            </div>
+            {% endfor %}
+        </div>
+        <button type="button" id="add-image-btn" class="btn btn-secondary mt-3">Agregar otra imagen</button>
+    </div>
+
+    <!-- Botones de navegación -->
+    <div class="form-navigation mt-4">
+        <button type="button" class="btn btn-secondary" id="prev-step" style="display: none;">Anterior</button>
+        <button type="button" class="btn btn-primary" id="next-step">Siguiente</button>
+        <button type="submit" class="btn btn-success" id="submit-form" style="display: none;">Guardar Proyecto</button>
+    </div>
+</form>
+
+<!-- Modal para agregar componente -->
+<div class="modal fade" id="addComponentModal" tabindex="-1" aria-labelledby="addComponentModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addComponentModalLabel">Agregar Nuevo Componente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addComponentForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ component_form.as_p }}
+                    <button type="submit" class="btn btn-primary">Guardar Componente</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script AJAX para agregar el componente sin recargar la página -->
+<script>
+    // Script para manejar los pasos del formulario
+    let currentStep = 1;
+    const totalSteps = 4;
+
+    function showStep(step) {
+        for (let i = 1; i <= totalSteps; i++) {
+            document.getElementById(`step-${i}`).style.display = i === step ? "block" : "none";
+        }
+        document.getElementById('prev-step').style.display = step === 1 ? "none" : "inline-block";
+        document.getElementById('next-step').style.display = step === totalSteps ? "none" : "inline-block";
+        document.getElementById('submit-form').style.display = step === totalSteps ? "inline-block" : "none";
+    }
+
+    document.getElementById('next-step').addEventListener('click', () => {
+        if (currentStep < totalSteps) {
+            currentStep++;
+            showStep(currentStep);
+        }
+    });
+
+    document.getElementById('prev-step').addEventListener('click', () => {
+        if (currentStep > 1) {
+            currentStep--;
+            showStep(currentStep);
+        }
+    });
+
+    // Inicializar mostrando el primer paso
+    showStep(currentStep);
+
+    // AJAX para agregar el componente
+    document.getElementById('addComponentForm').onsubmit = function (e) {
+        e.preventDefault();
+
+        let formData = new FormData(this);
+
+        fetch("{% url 'register' %}", {  // Asegúrate de que esta URL apunte a tu vista
+            method: "POST",
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': '{{ csrf_token }}',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Añadir el nuevo componente al select de componentes
+                    let componentsSelect = document.getElementById('id_components');
+                    let option = new Option(data.component_name, data.component_id);
+                    componentsSelect.add(option, undefined);
+                    componentsSelect.value = data.component_id;  // Seleccionar el recién añadido
+
+                    // Cerrar el modal usando el método de Bootstrap
+                    let modal = bootstrap.Modal.getInstance(document.getElementById('addComponentModal'));
+                    modal.hide();
+
+                    // Resetear el formulario de la modal
+                    this.reset();
+                } else {
+                    alert("Error: " + JSON.stringify(data.errors));
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    };
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const addImageBtn = document.getElementById("add-image-btn");
+        const formsetContainer = document.getElementById("formset-container");
+        const totalFormsInput = document.querySelector("[name='projectimage_set-TOTAL_FORMS']");
+
+        addImageBtn.addEventListener("click", function () {
+            // Obtén el número actual de formularios en el formset
+            const currentFormCount = parseInt(totalFormsInput.value);
+
+            // Crea un nuevo formulario
+            const newFormHtml = `
+                <div class="mb-3 form-inline">
+                    <label for="id_projectimage_set-${currentFormCount}-image">Imagen:</label>
+                    <input type="file" name="projectimage_set-${currentFormCount}-image" id="id_projectimage_set-${currentFormCount}-image" class="form-control" accept="image/*">
+                </div>
+            `;
+
+            // Agrega el nuevo formulario al contenedor
+            formsetContainer.insertAdjacentHTML("beforeend", newFormHtml);
+
+            // Incrementa el contador de formularios totales
+            totalFormsInput.value = currentFormCount + 1;
+        });
+    });
+
+
+</script>
+{% endblock %}

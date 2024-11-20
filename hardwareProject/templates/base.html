@@ -7,8 +7,30 @@
     <title>{% block title %}Hardware Libre{% endblock %}</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/themes/prism.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/prism.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/components/prism-c.min.js"></script>
+
+    <style>
+        html, body {
+            height: 100%;  /* Asegura que html y body ocupen toda la altura de la ventana */
+            margin: 0;  /* Elimina márgenes por defecto */
+        }
+
+        body {
+            min-height: 100vh;  /* 100vh asegura que el body tenga al menos la altura de la ventana */
+            display: flex;
+            flex-direction: column;  /* Organiza los elementos en una columna */
+        }
+
+        main {
+            flex-grow: 1;  /* Hace que el contenido principal ocupe el espacio restante */
+        }
+    </style>
+
 </head>
-<body>
+<body class="pt-5">
     <!-- Incluye el header -->
     {% include 'includes/header.html' %}
     

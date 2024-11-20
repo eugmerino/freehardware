@@ -3,11 +3,11 @@
     <div class="container d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center">
             {% if config and config.logo %}
-            <a href="../Inicio/">
+            <a href="{% url 'home' %}">
                 <img src="{{ config.logo.url }}" alt="Logo" height="50" class="me-2">
             </a>
             {% endif %}
-            <a href="../Inicio/" class="text-decoration-none text-dark">
+            <a href="{% url 'home' %}" class="text-decoration-none text-dark">
                 <h1 class="h4 mb-0">
                     {% if config and config.name %}
                         {{ config.name }}
@@ -19,9 +19,9 @@
         </div>
         
         <nav class="d-flex gap-3">
-            <a href="../Inicio/" class="text-decoration-none text-dark">Inicio</a>
-            <a href="../Proyectos/" class="text-decoration-none text-dark">Proyectos</a>
-            <a href="#" class="text-decoration-none text-dark">Nosotros</a>
+            <a href="{% url 'home' %}" class="text-decoration-none text-dark">Inicio</a>
+            <a href="{% url 'projects_view' %}" class="text-decoration-none text-dark">Proyectos</a>
+            <a href="{% url 'register' %}" class="text-decoration-none text-dark">Agregar</a>
         </nav>
     </div>
 </header>
