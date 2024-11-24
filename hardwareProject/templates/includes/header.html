@@ -1,0 +1,26 @@
+<header class="bg-light py-3 border-bottom fixed-top">
+    <div class="container d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            {% if config and config.logo %}
+            <a href="{% url 'home' %}">
+                <img src="{{ config.logo.url }}" alt="Logo" height="50" class="me-2">
+            </a>
+            {% endif %}
+            <a href="{% url 'home' %}" class="text-decoration-none text-dark">
+                <h1 class="h4 mb-0">
+                    {% if config and config.name %}
+                        {{ config.name }}
+                    {% else %}
+                        Proyectos Hardware Libre
+                    {% endif %}
+                </h1>
+            </a>
+        </div>
+        
+        <nav class="d-flex gap-3">
+            <a href="{% url 'home' %}" class="text-decoration-none text-dark">Inicio</a>
+            <a href="{% url 'projects_view' %}" class="text-decoration-none text-dark">Proyectos</a>
+            <a href="{% url 'register' %}" class="text-decoration-none text-dark">Agregar</a>
+        </nav>
+    </div>
+</header>

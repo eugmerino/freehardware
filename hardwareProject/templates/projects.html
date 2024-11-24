@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Proyectos - 
+    {% if config %}
+        {{ config.acronym }}
+    {% else %}
+        Proyectos Hardware Libre
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-3">Proyectos de Hardware Libre</h1>
+    <!-- Barra de búsqueda -->
+    <div class="mb-4">
+        <input type="text" id="searchInput" class="form-control" placeholder="Buscar proyectos..." onkeyup="searchProjects()">
+    </div>
+
+    <div class="row" id="projectsContainer">
+        {% for project in projects %}
+            <div class="col-md-4 col-lg-3 mb-4 project-item">
+                <div class="card h-100">
+                    {% if project.main_image %}
+                        <img src="{{ project.main_image.image.url }}" style="aspect-ratio: 16/9;" class="card-img-top" alt="{{ project.title }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/200" class="card-img-top" alt="Imagen del proyecto">
+                    {% endif %}
+                    
+                    <div class="card-body position-relative pb-5">
+                        <h5 class="card-title">{{ project.title }}</h5>
+                        <p class="card-text">
+                            {% if project.description|length > 100 %}
+                                {{ project.description|slice:":100" }}...
+                            {% else %}
+                                {{ project.description }}
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'project_detail' project.id %}" class="btn btn-primary position-absolute bottom-0 end-0 m-3">Ver más</a>
+                    </div>
+                    
+                </div>
+            </div>
+        {% empty %}
+            <p>No hay proyectos activos disponibles.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    function searchProjects() {
+        var input = document.getElementById('searchInput').value.toLowerCase();
+        var projects = document.querySelectorAll('.project-item');
+        
+        projects.forEach(function(project) {
+            var title = project.querySelector('.card-title').textContent.toLowerCase();
+            var description = project.querySelector('.card-text').textContent.toLowerCase();
+            
+            if (title.includes(input) || description.includes(input)) {
+                project.style.display = '';  // Mostrar el proyecto si coincide
+            } else {
+                project.style.display = 'none';  // Ocultar el proyecto si no coincide
+            }
+        });
+    }
+</script>
+{% endblock %}

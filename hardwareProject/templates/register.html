@@ -1,0 +1,435 @@
+{% extends 'base.html' %}
+
+{% block title %}Registro - 
+{% if config and config.acronym %}
+    {{ config.acronym }}
+{% else %}
+    Proyectos Hardware Libre
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<h1>Agregar Proyecto</h1>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Modal notificación -->
+    <div id="alertMessage" class="alert alert-warning alert-dismissible fade show" role="alert" style="display: none;">
+        <strong>Alerta!</strong> <span id="alertMessageText"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Paso 1: Título y Descripción -->
+    <div class="form-step" id="step-1">
+        <h3>Paso 1:</h3>
+        <div class="mb-3">
+            {{ form.title.label_tag }}
+            {{ form.title }}
+        </div>
+        <div class="mb-3">
+            {{ form.description.label_tag }}
+            {{ form.description }}
+        </div>
+    </div>
+
+    <!-- Paso 2: Código y Diagrama -->
+    <div class="form-step" id="step-2" style="display: none;">
+        <h3>Paso 2:</h3>
+        <div class="mb-3">
+            {{ form.code.label_tag }}
+            {{ form.code }}
+        </div>
+        <div class="mb-3">
+            {{ form.imgDiagram.label_tag }}
+            {{ form.imgDiagram }}
+        </div>
+    </div>
+
+    <!-- Paso 3: Componentes -->
+    <div class="form-step" id="step-3" style="display: none;">
+        <h3>Paso 3:</h3>
+        <div class="mb-5">
+            <div>
+                <label for="form-label">Componentes:</label>
+            </div>
+            <!-- Cambios principales en los campos y en el script -->
+            <div id="component-container">
+                <!-- Aqui se insetan los formularios de componentes nuevos -->
+            </div>
+            <div>
+                <label for="form-label">Agregar componente al poyecto:</label>
+            </div>
+            <div>
+                <button type="button" id="add-component-btn" class="btn btn-secondary">Agregar</button>
+                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addComponentModal">
+                    Nuevo componente
+                </button>
+            </div>
+            <div>
+                <label for="form-label">Si su componente no se encuentra puede registrar un nuevo componente.</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paso 4: Imágenes -->
+    <div class="form-step" id="step-4" style="display: none;">
+        <h3>Paso 4:</h3>
+        <div class="mb-3">
+            <label for="form-label">Imágenes del proyecto:</label>
+        </div>
+        {{ formset.management_form }}
+        <div id="formset-container">
+            {% for form in formset %}
+                <div class="mb-3 form-inline">
+                    {{ form.image.label_tag }}
+                    {{ form.image }}
+                </div>
+            {% endfor %}
+        </div>
+        <button type="button" id="add-image-btn" class="btn btn-secondary mt-3">Agregar otra imagen</button>
+    </div>
+
+    <!-- Paso 5: Video -->
+    <div class="form-step" id="step-5" style="display: none;">
+        <h3>Paso 5:</h3>
+        <div class="mb-3">
+            {{ form.urlVideo.label_tag }}
+            <label for="form-label">(Link de video de YouTube)</label>
+            {{ form.urlVideo }}
+        </div>
+    </div>
+
+    <!-- Paso 6: Enviar formulario -->
+    <div class="form-step" id="step-6" style="display: none;">
+        <h3>Paso 6:</h3>
+        <div class="mb-3">
+            <label for="form-label">Enviar formulario:</label>
+        </div>
+        <div id="formset-container">
+            <p>
+                Si está seguro de los datos agregados, envíe el formulario.<br>
+                No podrá modificar el proyecto una vez enviado.<br>
+                El proyecto no sera visible hasta ser aprobado.
+            </p>
+        </div>
+    </div>
+
+    <!-- Botones de navegación -->
+    <div class="form-navigation mt-4">
+        <button type="button" class="btn btn-secondary" id="prev-step" style="display: none;">Anterior</button>
+        <button type="button" class="btn btn-primary" id="next-step">Siguiente</button>
+        <button type="submit" class="btn btn-success" id="submit-form" style="display: none;">Guardar Proyecto</button>
+    </div>
+</form>
+
+<!-- Modal para agregar componente -->
+<div class="modal fade" id="addComponentModal" tabindex="-1" aria-labelledby="addComponentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addComponentModalLabel">Agregar Nuevo Componente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addComponentForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ component_form.as_p }}
+                    <button type="submit" class="btn btn-primary">Guardar Componente</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Manejo de los pasos del formulario
+    let currentStep = 1;
+    const totalSteps = 6;
+
+    // Función para mostrar el paso correspondiente
+    function showStep(step) {
+        for (let i = 1; i <= totalSteps; i++) {
+            document.getElementById(`step-${i}`).style.display = i === step ? "block" : "none";
+        }
+        document.getElementById('prev-step').style.display = step === 1 ? "none" : "inline-block";
+        document.getElementById('next-step').style.display = step === totalSteps ? "none" : "inline-block";
+        document.getElementById('submit-form').style.display = step === totalSteps ? "inline-block" : "none";
+    }
+
+    //mensajes
+    function showAlert(message) {
+        document.getElementById("alertMessageText").innerText = message;
+        document.getElementById("alertMessage").style.display = "block";
+
+        setTimeout(() => {
+            document.getElementById("alertMessage").style.display = "none";
+        }, 3000);
+    }
+
+    // Validación paso por paso
+    function validateStep(step) {
+        let isValid = true;
+
+        if (step === 1) {
+            // Validar el Paso 1: Título y Descripción
+            const title = document.querySelector('[name="title"]');
+            const description = document.querySelector('[name="description"]');
+            
+            if (title && !title.value) {
+                title.classList.add("is-invalid");
+                isValid = false;
+            } else {
+                title.classList.remove("is-invalid");
+            }
+
+            if (description && !description.value) {
+                description.classList.add("is-invalid");
+                isValid = false;
+            } else {
+                description.classList.remove("is-invalid");
+            }
+        } 
+        else if (step === 2) {
+            // Validar el Paso 2: Código y Diagrama
+            const code = document.querySelector('[name="code"]');
+            const imgDiagram = document.querySelector('[name="imgDiagram"]');
+            
+            if (code && !code.value) {
+                code.classList.add("is-invalid");
+                isValid = false;
+            } else {
+                code.classList.remove("is-invalid");
+            }
+
+            if (imgDiagram && !imgDiagram.value) {
+                imgDiagram.classList.add("is-invalid");
+                isValid = false;
+            } else {
+                imgDiagram.classList.remove("is-invalid");
+            }
+        } 
+        else if (step === 3) {
+            // Validar el Paso 3: Componentes
+            const components = document.querySelectorAll('[id^="component-"]');
+            if (components.length<2) {
+                showAlert("Debe agregar al menos un componente.");
+                isValid = false;
+            } else {
+                components.forEach(component => {
+                    const select = component.querySelector('select[name^="component_data"]');
+                    const amount = component.querySelector('input[name^="component_data"]');
+                    const description = component.querySelector('textarea[name^="component_data"]');
+                    
+                    if(amount && amount.value < 1) {
+                        amount.classList.add("is-invalid");
+                        isValid = false;
+                    } else {
+                        amount.classList.remove("is-invalid");
+                    }
+                    if (select && !select.value) {
+                        select.classList.add("is-invalid");
+                        isValid = false;
+                    } else {
+                        select.classList.remove("is-invalid");
+                    }
+                    if (description && !description.value) {
+                        description.classList.add("is-invalid");
+                        isValid = false;
+                    } else {
+                        description.classList.remove("is-invalid");
+                    }
+                });
+            }
+        } 
+        else if (step === 4) {
+            // Validar el Paso 4: Imágenes
+            const imageInputs = document.querySelectorAll('#formset-container input[type="file"]');
+            const currentFormCount = parseInt(document.querySelector("[name='projectimage_set-TOTAL_FORMS']").value);
+            
+            // Solo se valida si hay al menos un campo de imagen cargado
+            let imageValid = false;
+            imageInputs.forEach(input => {
+                if (input.files.length > 0) {
+                    imageValid = true; // Si al menos uno tiene imagen cargada
+                }
+            });
+
+            if (!imageValid) {
+                isValid = false;
+                showAlert("Debe cargar al menos una imagen para continuar.");
+            } 
+            for (let i = 0; i < currentFormCount; i++) {
+                let imgs = document.querySelector(`[name="projectimage_set-${i}-image"]`);
+                if (imgs && !imgs.value) {
+                    imgs.classList.add("is-invalid");
+                } else {
+                    imgs.classList.remove("is-invalid");
+                }
+            }
+            
+        }
+        else if (step === 5) {
+            // Validar el Paso 5: Video
+            const urlVideo = document.querySelector('[name="urlVideo"]');
+            
+            if (urlVideo && !urlVideo.value) {
+                urlVideo.classList.add("is-invalid");
+                isValid = false;
+            } else {
+                urlVideo.classList.remove("is-invalid");
+            }
+        }
+
+        return isValid;
+    }
+
+    // Manejador del evento para el botón "Siguiente"
+    document.getElementById('next-step').addEventListener('click', () => {
+        if (validateStep(currentStep)) {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                showStep(currentStep);
+            }
+        }
+    });
+
+    // Manejador del evento para el botón "Anterior"
+    document.getElementById('prev-step').addEventListener('click', () => {
+        if (currentStep > 1) {
+            currentStep--;
+            showStep(currentStep);
+        }
+    });
+
+    // Inicializar mostrando el primer paso
+    showStep(currentStep);
+
+
+    // Manejo de agregar componente dinámicamente
+    let componentCount = 0;
+    let addedOptions = [];
+
+    document.getElementById('add-component-btn').addEventListener('click', () => {
+        const newComponentHtml = `
+            <div id="component-${componentCount}">
+                <label>Seleccionar componente:</label>
+                <select name="component_data[${componentCount}][component_id]" class="form-control select2">
+                    {% for component in components %}
+                        <option value="{{ component.id }}">{{ component.name }}</option>
+                    {% endfor %}
+                    <!-- Las nuevas opciones dinámicas se insertarán aquí -->
+                    ${addedOptions.map(option => `<option value="${option.id}">${option.name}</option>`).join('')}
+                </select>
+                <input type="number" name="component_data[${componentCount}][amount]" placeholder="Cantidad" class="form-control mt-2">
+                <textarea name="component_data[${componentCount}][description]" placeholder="Descripción" class="form-control mt-2"></textarea>
+                <button type="button" class="btn btn-danger mt-2" onclick="removeComponent(${componentCount})">Eliminar</button>
+            </div>
+        `;
+        document.getElementById('component-container').insertAdjacentHTML('beforeend', newComponentHtml);
+        componentCount++;
+    });
+
+    function removeComponent(id) {
+        document.getElementById(`component-${id}`).remove();
+    }
+
+    // Antes de enviar el formulario, recopilar los datos de componentes dinámicos
+    document.querySelector('form').onsubmit = function (e) {
+        const componentData = [];
+        document.querySelectorAll('[id^="component-"]').forEach((componentDiv) => {
+            const select = componentDiv.querySelector('select[name^="component_data"]');
+            const amount = componentDiv.querySelector('input[name^="component_data"]');
+            const description = componentDiv.querySelector('textarea[name^="component_data"]');
+
+            if (select && amount && description) {
+                componentData.push({
+                    component_id: select.value,
+                    amount: amount.value,
+                    description: description.value,
+                });
+            }
+        });
+
+        // Crear un input oculto con los datos recopilados
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'components_data';
+        input.value = JSON.stringify(componentData);
+        this.appendChild(input);
+    };
+
+
+    // AJAX para agregar un nuevo componente
+    document.getElementById('addComponentForm').onsubmit = function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        fetch("{% url 'register' %}", {
+            method: "POST",
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': '{{ csrf_token }}',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Seleccionar todos los select con el nombre "component_id"
+                const selects = document.querySelectorAll('select[name^="component_data"]');
+                const option = new Option(data.component_name, data.component_id);
+
+                // Agregar la nueva opción a cada select
+                selects.forEach(select => {
+                    select.add(option.cloneNode(true));
+                });
+                addedOptions.push({
+                    id: data.component_id,
+                    name: data.component_name
+                });
+                // Cerrar el modal usando el método de Bootstrap
+                let modal = bootstrap.Modal.getInstance(document.getElementById('addComponentModal'));
+                modal.hide();
+                this.reset();
+            } else {
+                alert('Error al agregar el componente');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    };
+
+
+    // Manejo de imágenes dinámicas en el formulario
+    document.getElementById("add-image-btn").addEventListener("click", function () {
+        const currentFormCount = parseInt(document.querySelector("[name='projectimage_set-TOTAL_FORMS']").value);
+        const newFormHtml = `
+            <div class="mb-3 form-inline">
+                <label for="id_projectimage_set-${currentFormCount}-image">Imagen:</label>
+                <input type="file" name="projectimage_set-${currentFormCount}-image" class="form-control">
+            </div>
+        `;
+        document.getElementById("formset-container").insertAdjacentHTML('beforeend', newFormHtml);
+        document.querySelector("[name='projectimage_set-TOTAL_FORMS']").value = currentFormCount + 1;
+    });
+
+     // Inicializar Select2 en los selects existentes
+     $(document).ready(function() {
+        $('.select2').select2({
+            placeholder: "Buscar componente",
+            allowClear: true,
+        });
+    });
+
+    // Reaplicar Select2 a selects dinámicos
+    document.getElementById('add-component-btn').addEventListener('click', () => {
+        setTimeout(() => {
+            $('.select2').select2({
+                placeholder: "Buscar componente",
+                allowClear: true,
+            });
+        }, 100);
+    });
+
+</script>
+
+{% endblock %}
