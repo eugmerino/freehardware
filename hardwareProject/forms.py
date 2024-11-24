@@ -1,6 +1,5 @@
 from django import forms
 from .models import Project, ProjectImage, Component, ProjectComponent
-from django_select2.forms import Select2MultipleWidget
 from django.forms import inlineformset_factory
 
 
@@ -10,7 +9,7 @@ class RegisterProjectForm(forms.ModelForm):
     """
     class Meta:
         model = Project
-        fields = ['title', 'description', 'imgDiagram', 'code']
+        fields = ['title', 'description', 'imgDiagram', 'code', 'urlVideo']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -25,7 +24,11 @@ class RegisterProjectForm(forms.ModelForm):
             'code': forms.Textarea(attrs={
                 'class': 'form-control',
                 'placeholder': 'Ingrese el código fuente',
-                'rows': 6,
+                'rows': 10,
+            }),
+            'urlVideo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ingrese el link del video',
             }),
         }
 
@@ -80,16 +83,11 @@ class ComponentForm(forms.ModelForm):
     """
     class Meta:
         model = Component
-        fields = ['name', 'description', 'image']
+        fields = ['name', 'image']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Ingrese el nombre del componente',
-            }),
-            'description': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Describa el componente',
             }),
             'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }

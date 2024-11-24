@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 
 {% block title %}Proyectos - 
-    {% if config and config.name %}
-        {{ config.name }}
+    {% if config %}
+        {{ config.acronym }}
     {% else %}
         Proyectos Hardware Libre
     {% endif %}

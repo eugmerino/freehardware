@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 
 {% block title %}Proyectos - 
-    {% if config and config.name %}
-        {{ config.name }}
+    {% if config %}
+        {{ config.acronym }}
     {% else %}
         Proyectos Hardware Libre
     {% endif %}
@@ -29,6 +29,9 @@
         <li class="nav-item" role="presentation">
             <a class="nav-link" id="images-tab" data-bs-toggle="tab" href="#images" role="tab" aria-controls="images" aria-selected="false">Imágenes</a>
         </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="video-tab" data-bs-toggle="tab" href="#video" role="tab" aria-controls="video" aria-selected="false">Video</a>
+        </li>
     </ul>
 
     <!-- Tab content -->
@@ -42,7 +45,9 @@
         <!-- Diagrama -->
         <div class="tab-pane fade" id="diagram" role="tabpanel" aria-labelledby="diagram-tab">
             <h4>Diagrama del Proyecto</h4>
-            <img src="{{ project.imgDiagram.url }}" class="img-fluid" alt="Diagrama de {{ project.title }}">
+            <div class="d-flex justify-content-center">
+                <img src="{{ project.imgDiagram.url }}" class="img-fluid" alt="Diagrama de {{ project.title }}">
+            </div>
         </div>
 
         <!-- Código fuente -->
@@ -59,17 +64,19 @@
                     <tr>
                         <th></th>
                         <th>Nombre</th>
-                        <th>Descripción</th>
+                        <th style="width: 50%;">Descripción</th>
+                        <th style="width: 100px;">Cantidad</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for component in components %}
                         <tr>
                             <td>
-                                <img src="{{ component.image.url }}" alt="{{ component.name }}" class="img-thumbnail" style="width: 150px; height: auto;">
+                                <img src="{{ component.component.image.url }}" alt="{{ component.component.name }}" class="img-thumbnail" style="width: 150px; height: auto;">
                             </td>
-                            <td>{{ component.name }}</td>
+                            <td>{{ component.component.name }}</td>
                             <td>{{ component.description }}</td>
+                            <td>{{ component.amount }}</td>
                         </tr>
                     {% empty %}
                         <tr>
@@ -104,6 +111,22 @@
                     <span class="visually-hidden">Next</span>
                 </button>
             </div>
+        </div>
+
+        <!-- Video del Proyecto -->
+        <div class="tab-pane fade" id="video" role="tabpanel" aria-labelledby="video-tab">
+            <h4>Video del Proyecto</h4>
+            {% if video_url %}
+                <div style="position: relative; width: 100%; max-width: 800px; height: 0; padding-bottom: 40%; margin: 0 auto;">
+                    <iframe 
+                        src="{{ video_url }}" 
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            {% else %}
+                <p>No se ha proporcionado un video para este proyecto.</p>
+            {% endif %}
         </div>
     </div>
 </div>

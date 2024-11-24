@@ -45,8 +45,8 @@ class ProjectComponentInline(admin.TabularInline):
 
 class ProjectAdmin(admin.ModelAdmin):
     inlines = [ProjectComponentInline, ImageInline]  # Añadimos ProjectComponentInline aquí
-    list_display = ('title', 'state', 'description', 'view_link')
-    list_editable = ('state',)
+    list_display = ('title', 'state', 'favorite','description', 'view_link')
+    list_editable = ('state', 'favorite',)
     search_fields = ('title', 'description')
     list_per_page = 10
     ordering = ['state']

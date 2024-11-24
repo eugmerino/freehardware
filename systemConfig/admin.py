@@ -12,13 +12,15 @@ admin.site.site_title = "Hardware Libre"
 class SystemConfigAdmin(admin.ModelAdmin):
     list_display = (
         'name',
+        'acronym',
         'logo',
     )
     list_display_links = ['name']
     fields = (
         'name',
+        'acronym',
         'logo',
     )
-    search_fields = ('name',)
+    search_fields = ('name', 'acronym',)
     list_per_page = 10
     ordering = ['name']

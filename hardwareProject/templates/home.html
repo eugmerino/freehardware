@@ -2,27 +2,45 @@
 {% load static %}
 
 {% block title %}Inicio - 
-    {% if config and config.name %}
-        {{ config.name }}
+    {% if config %}
+        {{ config.acronym }}
     {% else %}
         Proyectos Hardware Libre
     {% endif %}
 {% endblock %}
 
 {% block content %}
-    <div class="container pt-5">
-        <h1>Explora Arquitectura de Computadoras:</h1>
-        <p>un curso que inspira la innovación y la creación de proyectos con hardware libre.
-            Despierta la curiosidad por los fundamentos de la arquitectura computacional y la robótica,
-            impulsando soluciones a problemas reales. Conecta tecnología y creatividad para mejorar vidas, 
-            fortalecer comunidades y construir un futuro más colaborativo.</p>
+    <div class="position-fixed top-0 start-0 w-100 h-100" style="background: rgba(0, 0, 0, 0.5); z-index: 5;"></div>
+
+    <div id="carouselExampleIndicators" class="carousel slide vh-100" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+            {% for image in ProjectImage %}
+                <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %} aria-current="true" aria-label="Slide {{ forloop.counter }}"></button>
+            {% endfor %}
+        </div>
+        <div class="carousel-inner h-100">
+            {% for image in ProjectImage %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                    <img src="{{ image.image.url }}" class="d-block w-100 h-100" alt="Imagen destacada" style="object-fit: cover;">
+                </div>
+            {% endfor %}
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Anterior</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Siguiente</span>
+        </button>
     </div>
-    <div class="row">
-        <div class="col-md-12 col-lg-6 pt-5">
-            <p>"La creatividad no tiene límites cuando la tecnología es libre."</p>
-        </div>
-        <div class="col-md-12 col-lg-6">
-            <img src="{% static 'img/HardwareLibre.jpg' %}" alt="Error cargar imagen" style="width: 200px; height: auto;">
-        </div>
+
+    <div class="position-absolute top-50 start-50 translate-middle text-center text-white" style="z-index: 10;">
+        <h1 class="fw-bold" style="color: orange;">Explora Arquitectura de Computadoras:</h1>
+        <p class="mt-3 fs-4">"La creatividad no tiene límites cuando la tecnología es libre."</p>
     </div>
 {% endblock %}
+
+
+
+

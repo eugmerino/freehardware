@@ -7,6 +7,7 @@ class SystemConfig(models.Model):
     representa la información del sistema
     """
     name = models.CharField("Nombre", max_length=200)
+    acronym = models.CharField("Acrónimo", max_length=10)
     logo = models.ImageField("Logo", upload_to="logo/")
 
     def save(self, *args, **kwargs):

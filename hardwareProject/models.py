@@ -25,6 +25,8 @@ class Project(models.Model):
     state = models.IntegerField("Estado", choices=STATE_CHOICES, default=2)
     imgDiagram = models.ImageField("Diagrama", upload_to="diagrams/")
     code = models.TextField("Código fuente")
+    urlVideo = models.CharField("Video", max_length=200)
+    favorite = models.BooleanField("Destacado", default = False)
 
     def save(self, *args, **kwargs):
         # Definir tamaño de redimensionamiento
@@ -68,7 +70,6 @@ class Component(models.Model):
     representa un componente del proyecto
     """
     name = models.CharField("Nombre", max_length=200)
-    description = models.TextField("Descripción", max_length=400)
     image = models.ImageField("imagen", upload_to="components/")
 
     def save(self, *args, **kwargs):
